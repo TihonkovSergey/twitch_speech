@@ -5,6 +5,7 @@ import shutil
 import subprocess
 import tempfile
 
+import os
 from os import path
 from pathlib import Path
 from urllib.parse import urlparse
@@ -154,6 +155,8 @@ def _video_target_filename(video, args):
         name = name + "." + args["format"]
 
     if args["path"]:
+        if not os.path.exists(args["path"]):
+            os.makedirs(args["path"])
         name = args["path"] + name
     return name
 
