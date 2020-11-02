@@ -9,11 +9,11 @@ from os import path
 from pathlib import Path
 from urllib.parse import urlparse
 
-from download import utils
-from download import twitch
-from download import download_file, download_files
-from download import ConsoleError
-from download import print_out, print_video
+from vod_download_utils import utils
+from vod_download_utils import twitch
+from vod_download_utils.download import download_file, download_files
+from vod_download_utils.exceptions import ConsoleError
+from vod_download_utils.output import print_out, print_video
 
 
 def _continue():
@@ -97,6 +97,7 @@ def _get_playlist_by_name(playlists, quality):
 
     if quality == 'worst':
         _, _, uri = playlists[-1]
+        return uri
 
     for name, _, uri in playlists:
         if name == quality:
@@ -136,18 +137,25 @@ def _join_vods(playlist_path, target, overwrite):
         raise ConsoleError("Joining files failed")
 
 
-def _video_target_filename(video, format):
-    match = re.search(r"^(\d{4})-(\d{2})-(\d{2})T", video['published_at'])
-    date = "".join(match.groups())
+def _video_target_filename(video, args):
+    if args["filename"]:
+        name = args["filename"] + "." + args["format"]
+    else:
+        match = re.search(r"^(\d{4})-(\d{2})-(\d{2})T", video['published_at'])
+        date = "".join(match.groups())
 
-    name = "_".join([
-        date,
-        video['_id'][1:],
-        video['channel']['name'],
-        utils.slugify(video['title']),
-    ])
+        name = "_".join([
+            date,
+            video['_id'][1:],
+            video['channel']['name'],
+            utils.slugify(video['title']),
+        ])
 
-    return name + "." + format
+        name = name + "." + args["format"]
+
+    if args["path"]:
+        name = args["path"] + name
+    return name
 
 
 def _get_vod_paths(playlist, start, end):
@@ -157,7 +165,7 @@ def _get_vod_paths(playlist, start, end):
     for segment in playlist.segments:
         vod_end = vod_start + segment.duration
 
-        # `vod_end > start` is used here becuase it's better to download a bit
+        # `vod_end > start` is used here because it's better to vod_download_utils a bit
         # more than a bit less, similar for the end condition
         start_condition = not start or vod_end > start
         end_condition = not end or vod_start < end
@@ -190,37 +198,39 @@ CLIP_PATTERNS = [
 ]
 
 
-def download(args):
+def download(args):  # done
     for pattern in VIDEO_PATTERNS:
-        match = re.match(pattern, args.video)
+        match = re.match(pattern, args['video'])
         if match:
             video_id = match.group('id')
             return _download_video(video_id, args)
 
     for pattern in CLIP_PATTERNS:
-        match = re.match(pattern, args.video)
+        match = re.match(pattern, args["video"])
         if match:
             clip_slug = match.group('slug')
             return _download_clip(clip_slug, args)
 
-    raise ConsoleError("Invalid video: {}".format(args.video))
+    raise ConsoleError("Invalid video: {}".format(args["video"]))
 
 
-def _get_clip_url(clip, args):
+def _get_clip_url(clip, args):  # done
     qualities = clip["videoQualities"]
 
     # Quality given as an argument
-    if args.quality:
-        if args.quality == "source":
+    if args["quality"]:
+        if args["quality"] == "source":
             return qualities[0]["sourceURL"]
+        if args["quality"] == "worst":
+            return qualities[-1]["sourceURL"]
 
-        selected_quality = args.quality.rstrip("p")  # allow 720p as well as 720
+        selected_quality = args["quality"].rstrip("p")  # allow 720p as well as 720
         for q in qualities:
             if q["quality"] == selected_quality:
                 return q["sourceURL"]
 
         available = ", ".join([str(q["quality"]) for q in qualities])
-        msg = "Quality '{}' not found. Available qualities are: {}".format(args.quality, available)
+        msg = "Quality '{}' not found. Available qualities are: {}".format(args["quality"], available)
         raise ConsoleError(msg)
 
     # Ask user to select quality
@@ -265,8 +275,8 @@ def _download_clip(slug, args):
     print_out("Downloaded: {}".format(filename))
 
 
-def _download_video(video_id, args):
-    if args.start and args.end and args.end <= args.start:
+def _download_video(video_id, args):  # done
+    if args["start"] and args["end"] and args["end"] <= args["start"]:
         raise ConsoleError("End time must be greater than start time")
 
     print_out("<dim>Looking up video...</dim>")
@@ -281,7 +291,7 @@ def _download_video(video_id, args):
     print_out("<dim>Fetching playlists...</dim>")
     playlists_m3u8 = twitch.get_playlists(video_id, access_token)
     playlists = list(_parse_playlists(playlists_m3u8))
-    playlist_uri = (_get_playlist_by_name(playlists, args.quality) if args.quality
+    playlist_uri = (_get_playlist_by_name(playlists, args["quality"]) if args["quality"]
                     else _select_playlist_interactive(playlists))
 
     print_out("<dim>Fetching playlist...</dim>")
@@ -291,7 +301,7 @@ def _download_video(video_id, args):
 
     base_uri = re.sub("/[^/]+$", "/", playlist_uri)
     target_dir = _crete_temp_dir(base_uri)
-    vod_paths = _get_vod_paths(playlist, args.start, args.end)
+    vod_paths = _get_vod_paths(playlist, args["start"], args["end"])
 
     # Save playlists for debugging purposes
     with open(path.join(target_dir, "playlists.m3u8"), "w") as f:
@@ -300,8 +310,8 @@ def _download_video(video_id, args):
         f.write(response.text)
 
     print_out("\nDownloading {} VODs using {} workers to {}".format(
-        len(vod_paths), args.max_workers, target_dir))
-    path_map = download_files(base_uri, target_dir, vod_paths, args.max_workers)
+        len(vod_paths), args["max_workers"], target_dir))
+    path_map = download_files(base_uri, target_dir, vod_paths, args["max_workers"])
 
     # Make a modified playlist which references downloaded VODs
     # Keep only the downloaded segments and skip the rest
@@ -315,16 +325,17 @@ def _download_video(video_id, args):
     playlist_path = path.join(target_dir, "playlist_downloaded.m3u8")
     playlist.dump(playlist_path)
 
-    if args.no_join:
+    if args["no_join"]:
         print_out("\n\n<dim>Skipping joining files...</dim>")
         print_out("VODs downloaded to:\n<blue>{}</blue>".format(target_dir))
         return
 
     print_out("\n\nJoining files...")
-    target = _video_target_filename(video, args.format)
-    _join_vods(playlist_path, target, args.overwrite)
+    target = _video_target_filename(video, args)
 
-    if args.keep:
+    _join_vods(playlist_path, target, args["overwrite"])
+
+    if args["keep"]:
         print_out("\n<dim>Temporary files not deleted: {}</dim>".format(target_dir))
     else:
         print_out("\n<dim>Deleting temporary files...</dim>")

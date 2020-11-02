@@ -6,8 +6,8 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from datetime import datetime
 from functools import partial
 from requests.exceptions import RequestException
-from download import print_out
-from download import format_size, format_duration
+from vod_download_utils.output import print_out
+from vod_download_utils.utils import format_size, format_duration
 
 
 CHUNK_SIZE = 1024

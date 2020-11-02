@@ -3,7 +3,7 @@
 import sys
 import re
 
-from download import utils
+from vod_download_utils import utils
 
 
 START_CODES = {
