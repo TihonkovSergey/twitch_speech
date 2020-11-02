@@ -9,6 +9,9 @@ __pycache__/
 # Idea files
 .idea
 
+# Trash files
+.trash
+
 # Distribution / packaging
 .Python
 build/
