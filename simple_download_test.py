@@ -18,7 +18,7 @@ default_args = {
 }
 args = deepcopy(default_args)
 args["video"] = vod_id
-args["path"] = "data/"
+args["path"] = "data/vods/"
 args["filename"] = vod_id
 
 download(args)

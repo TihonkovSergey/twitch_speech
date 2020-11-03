@@ -16,7 +16,7 @@ default_args = {
 }
 args = deepcopy(default_args)
 args["channel_name"] = channel_name
-args["path"] = "data/" + channel_name + "/"
+args["path"] = "data/vod_list/"
 args["filename"] = channel_name + ".txt"
 
 full_filename = args["path"] + args["filename"]
