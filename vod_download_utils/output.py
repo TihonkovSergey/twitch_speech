@@ -2,6 +2,7 @@
 
 import sys
 import re
+import os
 
 from vod_download_utils import utils
 
@@ -57,7 +58,7 @@ def print_err(*args, **kwargs):
     print(*args, file=sys.stderr, **kwargs)
 
 
-def print_video(video):
+def print_video(video, file=sys.stdout, path="/"):
     published_at = video["publishedAt"].replace("T", " @ ").replace("Z", "")
     length = utils.format_duration(video["lengthSeconds"])
     channel = video["creator"]["channel"]["displayName"]
@@ -68,9 +69,21 @@ def print_video(video):
 
     # Can't find URL in video object, strange
     url = "https://www.twitch.tv/videos/{}".format(video["id"])
-
-    print_out("\n<b>{}</b>".format(video["id"]))
-    print_out("<green>{}</green>".format(video["title"]))
-    print_out("<blue>{}</blue> {}".format(channel, playing))
-    print_out("Published <blue>{}</blue>  Length: <blue>{}</blue> ".format(published_at, length))
-    print_out("<i>{}</i>".format(url))
+    if file != sys.stdout:
+        if not os.path.exists(path):
+            os.makedirs(path)
+        fullname = path + file
+        with open(fullname, "a") as text_file:
+            text_file.writelines([
+                "\n<b>{}</b>\n".format(video["id"]),
+                "<green>{}</green>\n".format(video["title"]),
+                "<blue>{}</blue> {}\n".format(channel, playing),
+                "Published <blue>{}</blue>  Length: <blue>{}</blue>\n".format(published_at, length),
+                "<i>{}</i>\n".format(url)
+            ])
+    else:
+        print_out("\n<b>{}</b>".format(video["id"]))
+        print_out("<green>{}</green>".format(video["title"]))
+        print_out("<blue>{}</blue> {}".format(channel, playing))
+        print_out("Published <blue>{}</blue>  Length: <blue>{}</blue> ".format(published_at, length))
+        print_out("<i>{}</i>".format(url))

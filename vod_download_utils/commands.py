@@ -48,11 +48,11 @@ def _get_game_ids(names):
 
 
 def videos(args):
-    game_ids = _get_game_ids(args.game)
+    game_ids = _get_game_ids(args["game"])
 
     print_out("<dim>Loading videos...</dim>")
     generator = twitch.channel_videos_generator(
-        args.channel_name, args.limit, args.sort, args.type, game_ids=game_ids)
+        args["channel_name"], args["limit"], args["sort"], args["type"], game_ids=game_ids)
 
     first = 1
 
@@ -65,9 +65,9 @@ def videos(args):
         print_out("<yellow>Showing videos {}-{} of {}</yellow>".format(first, last, total))
 
         for video in videos["edges"]:
-            print_video(video["node"])
+            print_video(video["node"], file=args["filename"], path=args["path"])
 
-        if not args.pager:
+        if not args["pager"]:
             print_out(
                 "\n<dim>There are more videos. "
                 "Increase the --limit or use --pager to see the rest.</dim>"
