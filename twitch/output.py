@@ -4,7 +4,7 @@ import sys
 import re
 import os
 
-from vod_download_utils import utils
+from twitch import utils
 
 
 START_CODES = {

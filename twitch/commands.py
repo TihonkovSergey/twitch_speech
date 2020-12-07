@@ -10,11 +10,11 @@ from os import path
 from pathlib import Path
 from urllib.parse import urlparse
 
-from vod_download_utils import utils
-from vod_download_utils import twitch
-from vod_download_utils.download import download_file, download_files
-from vod_download_utils.exceptions import ConsoleError
-from vod_download_utils.output import print_out, print_video
+from twitch import utils
+from twitch import twitch
+from twitch.download import download_file, download_files
+from twitch.exceptions import ConsoleError
+from twitch.output import print_out, print_video
 
 
 def _continue():

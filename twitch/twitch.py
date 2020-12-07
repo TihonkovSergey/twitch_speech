@@ -4,8 +4,8 @@ Twitch API access.
 
 import requests
 
-from vod_download_utils import CLIENT_ID
-from vod_download_utils.exceptions import ConsoleError
+from twitch import CLIENT_ID
+from twitch.exceptions import ConsoleError
 
 
 class GQLError(Exception):

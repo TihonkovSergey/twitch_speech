@@ -1,5 +1,5 @@
 ffmpeg
 m3u8
-requests~=2.22.0
-pytz~=2020.1
-setuptools~=50.3.0
+requests
+pytz
+setuptools

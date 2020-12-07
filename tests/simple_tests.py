@@ -1,4 +1,4 @@
-from twitch.videos import get_channel_videos, download_video, video2wav
+from utils.video_utils import get_channel_videos, download_video, video2wav
 from pprint import pprint
 import config as cf
 

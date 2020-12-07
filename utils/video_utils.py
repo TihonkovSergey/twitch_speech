@@ -8,8 +8,8 @@ import subprocess
 import shutil
 from urllib.parse import urlparse
 from pathlib import Path
-from vod_download_utils import twitch
-from vod_download_utils.download import download_files
+from twitch import twitch
+from twitch.download import download_files
 import config as cf
 
 VIDEO_PATTERNS = [

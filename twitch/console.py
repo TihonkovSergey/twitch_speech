@@ -5,10 +5,10 @@ import sys
 from argparse import ArgumentParser, ArgumentTypeError
 from collections import namedtuple
 
-from vod_download_utils.exceptions import ConsoleError
-from vod_download_utils.output import print_err
-from vod_download_utils.twitch import GQLError
-from vod_download_utils import commands,  __version__
+from twitch.exceptions import ConsoleError
+from twitch.output import print_err
+from twitch.twitch import GQLError
+from twitch import commands,  __version__
 
 
 Command = namedtuple("Command", ["name", "description", "arguments"])
