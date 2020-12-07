@@ -1,0 +1,3 @@
+[submodule "speech_to_text_russian"]
+	path = speech_to_text_russian
+	url = git@github.com:SergeyShk/Speech-to-Text-Russian.git
