@@ -28,7 +28,20 @@ def video2wav(path_in, path_out, hz=8000):
     if not os.path.exists(path):
         os.makedirs(path)
 
-    os.system('ffmpeg -i {} -ac 1 -ar {} -vn {} -y || exit'.format(path_in, hz, path_out))
+    command = [
+        "ffmpeg",
+        "-i", path_in,
+        "-ac", '1',
+        "-ar", str(hz),
+        "-vn", path_out,
+        "-y",
+    ]
+
+    result = subprocess.run(command, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    if result.returncode != 0:
+        raise SystemError(f"Converting {path_in} to {path_out} with {hz}Hz failed!")
+
+    #os.system('ffmpeg -i {} -ac 1 -ar {} -vn {} -y  || exit &> /dev/null'.format(path_in, hz, path_out))
     # -ac 1 mono channel
     # -ar 8000 Hz
 
@@ -214,6 +227,6 @@ def _join_vods(playlist_path, target):
         "-y",
     ]
 
-    result = subprocess.run(command, stderr=subprocess.STD_ERROR_HANDLE, stdout=subprocess.STD_ERROR_HANDLE)
+    result = subprocess.run(command, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
     if result.returncode != 0:
         raise SystemError("Joining files failed")
