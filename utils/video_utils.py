@@ -214,6 +214,6 @@ def _join_vods(playlist_path, target):
         "-y",
     ]
 
-    result = subprocess.run(command)
+    result = subprocess.run(command, stderr=subprocess.STD_ERROR_HANDLE, stdout=subprocess.STD_ERROR_HANDLE)
     if result.returncode != 0:
         raise SystemError("Joining files failed")
