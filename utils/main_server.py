@@ -13,7 +13,7 @@ from twitch import twitch
 from twitch.utils import format_size, format_duration
 import config as cf
 from utils.video_utils import _parse_playlists, _get_playlist_by_name, _crete_temp_dir, \
-    _video_target_filename, _get_vod_paths, _join_vods, video2wav
+    _video_target_filename, _get_vod_paths, _join_vods, video2wav, get_video_subs, recognize
 from twitch.download import download_file
 
 VIDEO_PATTERNS = [
@@ -74,6 +74,18 @@ class TwitchSpeechServer:
             # delete wav if exist
             self.video_status[video_id]['status'] = 'fail_on_converting_to_wav'
             return
+
+        # recognition
+        self.video_status[video_id]['status'] = 'recognition'
+        try:
+            recognize(video_id, cf.START_RECOGNITION_PATH, cf.SOUNDS_DIR_PATH, cf.RECOGNITION_RESULTS_DIR_PATH)
+        except:
+            self.video_status[video_id]['status'] = 'fail_on_recognition'
+            return
+
+        self.video_status[video_id]['status'] = 'finished'
+        # push in db
+        return self.get_video_subs(video_id)
 
     def get_video_status(self, video_id):
         return self.video_status[video_id]
@@ -182,17 +194,22 @@ class TwitchSpeechServer:
 
         return OrderedDict(zip(vod_paths, targets))
 
+    def get_video_subs(self, video_id):
+        return get_video_subs(video_id, subs_path=cf.SUBS_DIR_PATH)
+
 
 if __name__ == '__main__':
+    # Example
     server = TwitchSpeechServer()
 
-    videos = ['760718196', '659087312']
+    videos = ['760718196', '574423677', '658442340']
     server.process_videos(videos)
 
-    for _ in range(10):
+    for _ in range(30):
         for video_id in videos:
             tmp = server.get_video_status(video_id)
             status = tmp['status']
             info = tmp['download_info']
             print(f'Video {video_id}:\nStatus: {status}\nInfo: {info}\n\n')
-            time.sleep(1)
+
+        time.sleep(5)

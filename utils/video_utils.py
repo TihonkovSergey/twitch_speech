@@ -11,6 +11,8 @@ from pathlib import Path
 from twitch import twitch
 from twitch.download import download_files
 import config as cf
+import pysubs2
+import json
 
 VIDEO_PATTERNS = [
     r"^(?P<id>\d+)?$",
@@ -18,7 +20,7 @@ VIDEO_PATTERNS = [
 ]
 
 
-def video2wav(path_in, path_out, hz=8000):
+def video2wav(path_in, path_out, hz=8000, verbose=0):
     if not os.path.exists(path_in):
         raise FileNotFoundError(f"File not found on {path_in}")
 
@@ -37,7 +39,13 @@ def video2wav(path_in, path_out, hz=8000):
         "-y",
     ]
 
-    result = subprocess.run(command, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    if verbose == 0:
+        result = subprocess.run(command, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    elif verbose == 1:
+        result = subprocess.run(command, stdout=subprocess.DEVNULL)
+    else:
+        result = subprocess.run(command)
+
     if result.returncode != 0:
         raise SystemError(f"Converting {path_in} to {path_out} with {hz}Hz failed!")
 
@@ -216,7 +224,7 @@ def _video_target_filename(video, video_format="mkv", path=None, filename=None):
     return name
 
 
-def _join_vods(playlist_path, target):
+def _join_vods(playlist_path, target, verbose=0):
     command = [
         "ffmpeg",
         "-i", playlist_path,
@@ -227,6 +235,74 @@ def _join_vods(playlist_path, target):
         "-y",
     ]
 
-    result = subprocess.run(command, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    if verbose == 0:
+        result = subprocess.run(command, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    elif verbose == 1:
+        result = subprocess.run(command, stdout=subprocess.DEVNULL)
+    else:
+        result = subprocess.run(command)
+
     if result.returncode != 0:
         raise SystemError("Joining files failed")
+
+
+def recognize(video_id, start_path, wavs_path, output_path, verbose=0):
+    # make tmp dir
+    full_path = wavs_path + video_id
+    if not os.path.exists(full_path):
+        os.makedirs(full_path)
+
+    # move wav file to tmp dir
+    os.replace(f"{full_path}.wav", f"{full_path}/{video_id}.wav")
+
+    # call start_recognition script
+    command = [
+        "python",
+        "start_recognition.py",
+        full_path,
+        output_path,
+        "-l",
+        "-dw"
+    ]
+
+    if verbose == 0:
+        result = subprocess.run(command, cwd=start_path, stderr=subprocess.DEVNULL, stdout=subprocess.DEVNULL)
+    elif verbose == 1:
+        result = subprocess.run(command, cwd=start_path, stdout=subprocess.DEVNULL)
+    else:
+        result = subprocess.run(command, cwd=start_path)
+
+    if result.returncode != 0:
+        raise SystemError(f"Recognition {video_id} failed")
+
+    # delete tmp dir
+    shutil.rmtree(full_path, ignore_errors=True)
+
+
+def get_video_subs(video_id, subs_path):
+    json_path = f"{subs_path}{video_id}.json"
+    if os.path.exists(json_path):
+        with open(json_path) as json_file:
+            return json.load(json_file)
+
+    subs = pysubs2.load(f"{subs_path}{video_id}.ass")
+
+    parts = []
+    for line in subs:
+        data = {
+            'start': line.start,
+            'end': line.end,
+            'text': line.text,
+        }
+        parts.append(data)
+
+    subs = {
+        'id': video_id,
+        'subs': parts,
+        'totalCounts': len(parts),
+    }
+
+    with open(json_path, 'w') as outfile:
+        json.dump(subs, outfile)
+
+    return subs
