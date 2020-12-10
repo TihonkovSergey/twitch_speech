@@ -49,9 +49,7 @@ def video2wav(path_in, path_out, hz=8000, verbose=0):
     if result.returncode != 0:
         raise SystemError(f"Converting {path_in} to {path_out} with {hz}Hz failed!")
 
-    #os.system('ffmpeg -i {} -ac 1 -ar {} -vn {} -y  || exit &> /dev/null'.format(path_in, hz, path_out))
-    # -ac 1 mono channel
-    # -ar 8000 Hz
+    os.remove(path_in)
 
 
 def get_channel_videos(channel_id, limit="all", sort="time", video_type="archive"):
@@ -279,13 +277,9 @@ def recognize(video_id, start_path, wavs_path, output_path, verbose=0):
     shutil.rmtree(full_path, ignore_errors=True)
 
 
-def get_video_subs(video_id, subs_path):
-    json_path = f"{subs_path}{video_id}.json"
-    if os.path.exists(json_path):
-        with open(json_path) as json_file:
-            return json.load(json_file)
-
-    subs = pysubs2.load(f"{subs_path}{video_id}.ass")
+def parse_ass(video_id, subs_path):
+    path = f"{subs_path}{video_id}.ass"
+    subs = pysubs2.load(path)
 
     parts = []
     for line in subs:
@@ -297,7 +291,5 @@ def get_video_subs(video_id, subs_path):
         }
         parts.append(elem)
 
-    with open(json_path, 'w') as outfile:
-        json.dump(parts, outfile)
-
+    os.remove(path)
     return parts
