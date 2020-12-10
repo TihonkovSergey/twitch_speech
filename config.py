@@ -10,4 +10,4 @@ TMP_DIR_PATH = "/home/sergey/Documents/homeworks/twitch_speech/data/tmp/"
 
 START_RECOGNITION_PATH = '/home/sergey/Documents/homeworks/twitch_speech/speech_to_text_russian/'
 
-RECOGNITION_SERVE_FREQ = 5
+DATABASE_NAME = "twitch_speech"
