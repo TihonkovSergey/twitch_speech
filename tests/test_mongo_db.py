@@ -1,10 +1,11 @@
-import pymongo
+from pprint import pprint
 from pymongo import MongoClient
-from utils.db_connector import DBConnector, init_empty_mongo_db
+from utils.db_connector import DBConnector
+from utils.init_db import init_empty_mongo_db
 import random
 
-if __name__ == '__main__':
-    db_name = 'twitch_speech'
+
+def init_test(db_name='test'):
     init_empty_mongo_db(db_name)
     conn = DBConnector(db_name=db_name)
 
@@ -22,9 +23,9 @@ if __name__ == '__main__':
             gen_parts.append(
                 {
                     'video_id': video_id,
-                    "start": 2*i,
-                    "end": 2*i + 1,
-                    "text": f"{13*i+17} русский {video_id}"
+                    "start": 2 * i,
+                    "end": 2 * i + 1,
+                    "text": f"{13 * i + 17} русский {video_id}"
                 }
             )
 
@@ -73,3 +74,27 @@ if __name__ == '__main__':
     print(f"\nStatus not exists {145421232} video:")
     res = conn.get_status(145421232)
     print(res)
+
+    client = MongoClient()
+    client.drop_database(db_name)
+
+
+if __name__ == '__main__':
+    db_con = DBConnector("twitch_speech")
+
+    video_id = '760718196'
+    print(f"\nStatus {video_id}:")
+    print(db_con.get_status(video_id))
+
+    print(f"\nParts {video_id}")
+    parts = db_con.get_parts(video_id)
+    for part in parts:
+        print(part)
+
+    #res = db_con.get_parts_table()
+    #for el in res:
+    #    print(el)
+
+    res = db_con.find_text(video_id, "ребята")
+    for el in res:
+        print(el)
