@@ -2,7 +2,7 @@ import pymongo
 from pymongo import MongoClient
 
 
-def init_mongo_db(db_name):
+def init_empty_mongo_db(db_name):
     client = MongoClient()
     client.drop_database(db_name)
 
