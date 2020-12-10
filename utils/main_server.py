@@ -13,8 +13,10 @@ from twitch import twitch
 from twitch.utils import format_size, format_duration
 import config as cf
 from utils.video_utils import _parse_playlists, _get_playlist_by_name, _crete_temp_dir, \
-    _video_target_filename, _get_vod_paths, _join_vods, video2wav, get_video_subs, recognize
+    _video_target_filename, _get_vod_paths, _join_vods, video2wav, parse_ass, recognize
 from twitch.download import download_file
+from utils.db_connector import DBConnector
+from pprint import pprint
 
 VIDEO_PATTERNS = [
     r"^(?P<id>\d+)?$",
@@ -42,15 +44,12 @@ VIDEO_PATTERNS = [
 
 class TwitchSpeechServer:
     def __init__(self):
-        self.db_connector = None
-        self.video_status = defaultdict()
+        self.db_connector = DBConnector(cf.DATABASE_NAME)
 
     def process_videos(self, ids, workers=20):
         for video_id in ids:
-            self.video_status[video_id] = {
-                'status': 'preparing_for_download',
-                'download_info': {},
-            }
+            self.db_connector.delete_video(video_id)
+            self.db_connector.update_status(video_id, "preparing_for_download", info="-")
 
         partials = (partial(self._process_video, i, workers=workers) for i in ids)
         threads = [Thread(target=fn) for fn in partials]
@@ -62,33 +61,29 @@ class TwitchSpeechServer:
         try:
             self._download_video(video_id, workers=workers,  filename=video_id)
         except:
-            self.video_status[video_id]['status'] = 'fail_on_downloading'
+            self.db_connector.update_status(video_id, 'fail_on_downloading')
             return
 
         #  mkv2wav
-        self.video_status[video_id]['status'] = 'converting_to_wav'
+        self.db_connector.update_status(video_id, 'converting_to_wav')
         try:
             video2wav(f"{cf.VODS_DIR_PATH}{video_id}.mkv", f"{cf.SOUNDS_DIR_PATH}{video_id}.wav")
             # delete video
         except:
             # delete wav if exist
-            self.video_status[video_id]['status'] = 'fail_on_converting_to_wav'
+            self.db_connector.update_status(video_id, 'fail_on_converting_to_wav')
             return
 
         # recognition
-        self.video_status[video_id]['status'] = 'recognition'
+        self.db_connector.update_status(video_id, 'recognition')
         try:
             recognize(video_id, cf.START_RECOGNITION_PATH, cf.SOUNDS_DIR_PATH, cf.RECOGNITION_RESULTS_DIR_PATH)
         except:
-            self.video_status[video_id]['status'] = 'fail_on_recognition'
+            self.db_connector.update_status(video_id, 'fail_on_recognition')
             return
 
-        self.video_status[video_id]['status'] = 'finished'
-        # push in db
-        return self.get_video_subs(video_id)
-
-    def get_video_status(self, video_id):
-        return self.video_status[video_id]
+        self.db_connector.update_status(video_id, 'finished')
+        self.db_connector.insert_parts(parse_ass(video_id, cf.SUBS_DIR_PATH))
 
     def _download_video(self, video_id, quality="worst", workers=20,
                         video_format="mkv", path=None, filename=None):
@@ -131,7 +126,7 @@ class TwitchSpeechServer:
 
         # Downloading VODs to target_dir
         path_map = self._download_files(video_id, base_uri, target_dir, vod_paths, workers)
-        self.video_status[video_id]['status'] = 'joining_segments'
+        self.db_connector.update_status(video_id, 'joining_segments')
 
         # Make a modified playlist which references downloaded VODs
         # Keep only the downloaded segments and skip the rest
@@ -157,7 +152,7 @@ class TwitchSpeechServer:
         Downloads a list of VODs defined by a common `base_url` and a list of
         `vod_paths`, returning a dict which maps the paths to the downloaded files.
         """
-        self.video_status[video_id]['status'] = 'downloading'
+        self.db_connector.update_status(video_id, 'downloading')
 
         urls = [base_url + path for path in vod_paths]
         targets = [os.path.join(target_dir, "{:05d}.ts".format(k)) for k, _ in enumerate(vod_paths)]
@@ -190,26 +185,24 @@ class TwitchSpeechServer:
                     'speed': format_size(speed) if speed > 0 else "-",
                     'remaining': format_duration(remaining) if speed > 0 else "-",
                 }
-                self.video_status[video_id]['download_info'] = info
+                self.db_connector.update_status(video_id, self.db_connector.get_status(video_id)['status'], info)
 
         return OrderedDict(zip(vod_paths, targets))
-
-    def get_video_subs(self, video_id):
-        return get_video_subs(video_id, subs_path=cf.SUBS_DIR_PATH)
 
 
 if __name__ == '__main__':
     # Example
     server = TwitchSpeechServer()
+    db_con = DBConnector(cf.DATABASE_NAME)
 
     videos = ['760718196', '574423677', '658442340']
     server.process_videos(videos)
 
     for _ in range(30):
         for video_id in videos:
-            tmp = server.get_video_status(video_id)
+            tmp = db_con.get_status(video_id)
             status = tmp['status']
-            info = tmp['download_info']
+            info = tmp['info']
             print(f'Video {video_id}:\nStatus: {status}\nInfo: {info}\n\n')
 
         time.sleep(5)
