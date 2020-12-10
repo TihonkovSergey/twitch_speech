@@ -289,20 +289,15 @@ def get_video_subs(video_id, subs_path):
 
     parts = []
     for line in subs:
-        data = {
+        elem = {
+            'video_id': video_id,
             'start': line.start,
             'end': line.end,
             'text': line.text,
         }
-        parts.append(data)
-
-    subs = {
-        'id': video_id,
-        'subs': parts,
-        'totalCounts': len(parts),
-    }
+        parts.append(elem)
 
     with open(json_path, 'w') as outfile:
-        json.dump(subs, outfile)
+        json.dump(parts, outfile)
 
-    return subs
+    return parts
