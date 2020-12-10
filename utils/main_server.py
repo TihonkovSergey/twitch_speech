@@ -2,7 +2,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from threading import Thread
 import time
 from functools import partial
-from collections import OrderedDict, defaultdict
+from collections import OrderedDict
 from datetime import datetime
 import m3u8
 import re
@@ -16,30 +16,11 @@ from utils.video_utils import _parse_playlists, _get_playlist_by_name, _crete_te
     _video_target_filename, _get_vod_paths, _join_vods, video2wav, parse_ass, recognize
 from twitch.download import download_file
 from utils.db_connector import DBConnector
-from pprint import pprint
 
 VIDEO_PATTERNS = [
     r"^(?P<id>\d+)?$",
     r"^https://(www.)?twitch.tv/videos/(?P<id>\d+)(\?.+)?$",
 ]
-
-"""
-{
-    'id': {
-        'status': 'download_finished',
-        'download_info': {
-            'total_count': total_count,
-            'downloaded_count': downloaded_count,
-            'downloaded_size': format_size(downloaded_size),
-            'est_total_size': format_size(est_total_size),
-            'speed': format_size(speed) if speed > 0 else "-",
-            'remaining': format_duration(remaining) if speed > 0 else "-",
-        }
-        
-    }
-}
-
-"""
 
 
 class TwitchSpeechServer:
