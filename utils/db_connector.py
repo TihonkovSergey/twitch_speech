@@ -2,18 +2,6 @@ import pymongo
 from pymongo import MongoClient
 
 
-def init_empty_mongo_db(db_name):
-    client = MongoClient()
-    client.drop_database(db_name)
-
-    db = client[db_name]
-    status = db['status']
-    parts = db['video_parts']
-
-    parts.create_index([('text', 'text')], default_language="russian")
-    status.create_index([('video_id', pymongo.ASCENDING)], unique=True)
-
-
 class DBConnector:
     def __init__(self, db_name):
         self.db = MongoClient()[db_name]
@@ -25,8 +13,10 @@ class DBConnector:
         data = {
             "video_id": video_id,
             "status": status,
-            "info": info if info else {}
         }
+        if info:
+            data['info'] = info
+
         if res:
             data = {
                 "$set": data
@@ -71,6 +61,10 @@ class DBConnector:
     def get_parts_table(self):
         res = self.parts.find()
         return list(res)
+
+    def delete_video(self, video_id):
+        self.status.delete_many({"video_id": video_id})
+        self.parts.delete_many({"video_id": video_id})
 
 
 if __name__ == '__main__':
