@@ -27,10 +27,14 @@ def check_id(video_id):
     status = status_info['status']
 
     result_string = status + "\n" + "\n".join(f"{key}: {val}" for key, val in status_info["info"].items())
-    return {'status': result_string}
+    return {'status': status}
+    #return {'status': result_string}
 
 def search_text(video_id, input_text):
-    data = db_connector.find_text(video_id, input_text)
+    if input_text and input_text != '':
+        data = db_connector.find_text(video_id, input_text)
+    else:
+        data = db_connector.get_parts(video_id)
     result = {}
     for i, sub in enumerate(data):
         timecode = int(sub['start']) // 1000
