@@ -1,3 +1,5 @@
+import 'regenerator-runtime/runtime'
+
 const promiseTimer = (time) => new Promise(resolve => setTimeout(resolve, time));
 
 // https://www.twitch.tv/videos/827901857

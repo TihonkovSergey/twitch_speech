@@ -1,3 +1,5 @@
+import 'regenerator-runtime/runtime'
+
 window.onload = function () {
     const submitButton = document.getElementById('submit');
     submitButton.addEventListener('click', async function () {
