@@ -10,15 +10,22 @@ const createDivForLi = (innerText) => {
     return div;
 }
 
-const getSeconds = (timecode) => {
-    const time = timecode.split(':');
-    let summaryTime = 0;
-    let mult = 1;
-    for (let i = time.length - 1; i >= 0; i--) {
-        summaryTime += parseFloat(time[i]) * mult;
-        mult *= 60;
-    }
-    return summaryTime;
+const formatTime = (time) => {
+    console.log(time);
+    const formattedTime = (time >= 10) ? time : `0${time}`;
+    return formattedTime;
+}
+
+const getTimeString = (timeInSeconds) => {
+    const hours = Math.trunc(timeInSeconds / 3600);
+    const formattedHours = formatTime(hours);
+    const seconds = timeInSeconds % 60;
+    const formattedSeconds = formatTime(seconds);
+
+    const minutes = Math.trunc(timeInSeconds % 3600 / 60);
+    const formattedMinutes = formatTime(minutes);
+
+    return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
 
 window.onload = async function () {
@@ -63,14 +70,17 @@ window.onload = async function () {
             Object.values(data).forEach((obj) => {
                 const li = document.createElement('li');
                 li.className = "list-item";
-                const timecode = createDivForLi(obj.timecode);
+                console.log(obj.timecode);
+                const timeString = getTimeString(obj.timecode);
+                const timecode = createDivForLi(timeString);
                 timecode.className = "timecode";
                 const text = createDivForLi(obj.text);
                 li.append(timecode);
                 li.append(text);
                 ul.append(li);
                 timecode.addEventListener('click', () => {
-                    player.seek(getSeconds(obj.timecode));
+                    // console.log(obj.timecode);
+                    player.seek(obj.timecode);
                 });
             });
         }
