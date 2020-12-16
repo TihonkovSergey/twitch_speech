@@ -20,14 +20,13 @@ const getTimeString = (timeInSeconds) => {
     const formattedHours = formatTime(hours);
     const seconds = timeInSeconds % 60;
     const formattedSeconds = formatTime(seconds);
-
     const minutes = Math.trunc(timeInSeconds % 3600 / 60);
     const formattedMinutes = formatTime(minutes);
-
     return `${formattedHours}:${formattedMinutes}:${formattedSeconds}`;
 }
 
 window.onload = async function () {
+    console.log('AAAA');
     const back = document.getElementById("back");
     back.addEventListener('click', function () {
         window.location.href = `http://localhost:1234/index.html`;
@@ -40,11 +39,16 @@ window.onload = async function () {
     }
     // const videoContainer = document.querySelector(".video-container");
     let status = document.getElementById("status");
+    let progress = document.getElementById("progress");
+    let downloadSpeed = document.getElementById("download-speed");
+    console.log(status);
     while (data.status !== "success" && data.status !== "finished") {
         let response = await fetch(url);
         if (response.ok) {
             data = await response.json();
             status.innerText = data.status;
+            progress.innerText = `${data.progress}%`;
+            downloadSpeed.innerText = data.download_speed;
             if (data.status === 'success' || data.status === 'finished') {
                 break;
             }

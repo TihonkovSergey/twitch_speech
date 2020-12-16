@@ -29,7 +29,14 @@ body {
     display: flex;
     justify-content: center;
     align-items: center;
+    color: white;
+}
 
+.status,
+.progress,
+.download-speed {
+    display: flex;
+    justify-content: center;
 }
 
 .container__search-container {
@@ -44,12 +51,12 @@ body {
 }
 
 .context-list {
-    width: 900px;
+    width: 800px;
     padding: 0;
 }
 
 .input {
-    width: 850px;
+    width: 1000px;
     height: 34px;
     font-size: 18px;
     border: 1px solid #bbb;
