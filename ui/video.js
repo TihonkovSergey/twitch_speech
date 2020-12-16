@@ -34,12 +34,12 @@ window.onload = async function () {
     }
     // const videoContainer = document.querySelector(".video-container");
     let status = document.getElementById("status");
-    while (data.status !== "success") {
+    while (data.status !== "success" && data.status !== "finished") {
         let response = await fetch(url);
         if (response.ok) {
             data = await response.json();
             status.innerText = data.status;
-            if (data.status === 'success') {
+            if (data.status === 'success' || data.status === 'finished') {
                 break;
             }
         }
