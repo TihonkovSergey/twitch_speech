@@ -1,5 +1,3 @@
-import 'regenerator-runtime/runtime'
-
 const promiseTimer = (time) => new Promise(resolve => setTimeout(resolve, time));
 
 // https://www.twitch.tv/videos/827901857
@@ -22,6 +20,10 @@ const getSeconds = (timecode) => {
 }
 
 window.onload = async function () {
+    const back = document.getElementById("back");
+    back.addEventListener('click', function () {
+        window.location.href = `http://localhost:1234/index.html`;
+    });
     let params = (new URL(document.location)).searchParams;
     let videoId = params.get("video_id");
     const url = `http://localhost:5000/?video_id=${videoId}`;

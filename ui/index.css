@@ -41,6 +41,7 @@ input:active {
     border-radius: 3px;
     border: 1px solid #0000FF;
     font-size: 18px;
+    cursor: pointer;
 }
 
 .search-container__submit {
