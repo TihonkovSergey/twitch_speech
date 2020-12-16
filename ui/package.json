@@ -1,0 +1,15 @@
+{
+  "name": "twitch_speech",
+  "version": "1.0.0",
+  "main": "index.js",
+  "scripts": {
+    "dev": "parcel index.html video.html"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "description": "",
+  "dependencies": {
+    "core-js": "^3.8.1"
+  }
+}
