@@ -4,3 +4,5 @@ requests
 pytz
 setuptools
 pysubs2
+Flask
+Flask-Cors
