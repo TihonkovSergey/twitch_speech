@@ -11,7 +11,6 @@ const createDivForLi = (innerText) => {
 }
 
 const formatTime = (time) => {
-    console.log(time);
     const formattedTime = (time >= 10) ? time : `0${time}`;
     return formattedTime;
 }
@@ -66,11 +65,11 @@ window.onload = async function () {
         const url = `http://localhost:5000/search?video_id=${videoId}&input_text=${inputText}`;
         let response = await fetch(url);
         if (response.ok) {
+            ul.innerHTML = '';
             data = await response.json();
             Object.values(data).forEach((obj) => {
                 const li = document.createElement('li');
                 li.className = "list-item";
-                console.log(obj.timecode);
                 const timeString = getTimeString(obj.timecode);
                 const timecode = createDivForLi(timeString);
                 timecode.className = "timecode";
@@ -79,7 +78,6 @@ window.onload = async function () {
                 li.append(text);
                 ul.append(li);
                 timecode.addEventListener('click', () => {
-                    // console.log(obj.timecode);
                     player.seek(obj.timecode);
                 });
             });
