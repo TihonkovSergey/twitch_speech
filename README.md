@@ -29,4 +29,21 @@
 * Установить и запустить [mongodb](https://docs.mongodb.com/manual/tutorial/)
 * В файл `config.py` в писать желаемые пути до файлов
 * Для веб интерфейса:
-    * 
+    * Должны быть установлены flask и flask_cors
+    * Должны быть установлены node.js и npm: 
+	https://nodejs.org/en/
+    * Должны быть установлены все зависимости, для этого нужно перейти в папку twitch_speech/ui и выполнить:
+      	npm ci
+Для запуска приложения нужно сделать следующее, так же находясь в twitch_speech/ui:
+1. Запустить сервер flask. Для этого выполнить 
+        export FLASK_APP="server.py"
+	flask run
+2. Выполнить 
+	npm run dev 
+Стартовая страница проекта находится по адресу:
+	http://localhost:1234/index.html
+
+
+
+	
+
