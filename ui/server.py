@@ -25,7 +25,10 @@ def check_id(video_id):
 
     if not status_info:
         pipeline_server.process_videos(ids=[video_id])
-        return {'status': 'Процесс запущен'}
+        return {'status': 'Процесс запущен',
+                'progress': 0,
+                'download_speed': "0MB",
+                }
 
     status = status_info['status']
 
