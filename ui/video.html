@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <link rel="stylesheet" href="./video.css">
+    <script src="https://player.twitch.tv/js/embed/v1.js"></script>
+</head>
+
+<body>
+    <div class="container">
+        <div class="video-container">
+            <div id="twitch-embed" class="video-container__twitch-embed twitch-embed">
+                <div class="status">
+                    <div id="status"></div>
+                </div>
+            </div>
+        </div>
+        <div class="search-container container__search-container">
+            <input type="text" id="input" class="input" />
+            <button type="submit" id="submit" class="submit"> Найти </button>
+        </div>
+        <div class="list-container">
+            <ul class="context-list"></ul>
+        </div>
+    </div>
+    <script src="video.js"></script>
+</body>
+
+</html>
