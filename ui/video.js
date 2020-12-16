@@ -48,7 +48,7 @@ window.onload = async function () {
             data = await response.json();
             status.innerText = data.status;
             progress.innerText = `${data.progress}%`;
-            downloadSpeed.innerText = data.download_speed;
+            downloadSpeed.innerText = data.download_speed + "/s";
             if (data.status === 'success' || data.status === 'finished') {
                 break;
             }
