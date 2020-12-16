@@ -1,29 +1,45 @@
 from flask import Flask, request, jsonify
 from flask_cors import CORS
-import requests
-import json
+
+import sys
+sys.path.append("/home/sergey/Documents/homeworks/twitch_speech/")
+
+from utils.main_server import TwitchSpeechServer
+from utils.db_connector import DBConnector
+import config as cf
+
+
+
+pipeline_server = TwitchSpeechServer()
+db_connector = DBConnector(cf.DATABASE_NAME)
 
 app = Flask(__name__)
 CORS(app)
 
-idx = 0
-answer = [{'status': 'Ищем видяшку', 'text': '', 'id': 827901857},
-          {'status': 'Загружаем', 'text': '', 'id': 827901857},
-          {'status': 'success', 'text': 'abcdefghijklmnop',  'id': 827901857}] 
-          
+
 # {'status': 'Ищем видяшку'}
-def check_id(id):
-    global idx
-    if (idx < len(answer)):
-        idx += 1
-        return answer[idx - 1]
-    else:
-        idx = 0
-        return check_id(id)
+def check_id(video_id):
+    status_info = db_connector.get_status(video_id)
+
+    if not status_info:
+        return {'status': 'НАЧНИ СКАЧИВАТЬ'}
+
+    status = status_info['status']
+
+    result_string = status + "\n" + "\n".join(f"{key}: {val}" for key, val in status_info["info"].items())
+    return {'status': result_string}
 
 def search_text(video_id, input_text):
-    return {'0': {'timecode': '00:56', 'text': 'lol chto'},
-            '1': {'timecode': '02:56', 'text': 'lol kek'}}
+    data = db_connector.find_text(video_id, input_text)
+    result = {}
+    for i, sub in enumerate(data):
+        timecode = int(sub['start']) // 1000
+        text = sub['text']
+        result[str(i)] = {'timecode': timecode, 'text': text}
+    return result
+
+#return {'0': {'timecode': '00:56', 'text': 'lol chto'},
+#        '1': {'timecode': '02:56', 'text': 'lol kek'}}
 
 
 @app.route('/', methods=['GET'])
